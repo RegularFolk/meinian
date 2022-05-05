@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.dao.MemberDao">
+
+    <insert id="add" parameterType="member" useGeneratedKeys="true" keyProperty="id">
+        insert into t_member(name, sex, idCard, phoneNumber, regTime)
+        values (#{name}, #{sex}, #{idCard}, #{phoneNumber}, #{regTime})
+    </insert>
+
+    <select id="getMemberByTelephone" resultType="member" parameterType="string">
+        select *
+        from t_member
+        where phoneNumber = #{telephone}
+    </select>
+
+    <select id="findMemberCountByMonth" resultType="int" parameterType="string">
+        select COUNT(id)
+        from t_member
+        where regTime &lt;= #{month} /*小于等于的转义字符 &lt;*/
+    </select>
+
+    <select id="getTodayNewMember" resultType="int" parameterType="string">
+        select COUNT(id)
+        from t_member
+        where regTime = #{reportDate}
+    </select>
+
+    <select id="getTotalMember" resultType="int">
+        select COUNT(id)
+        from t_member
+    </select>
+
+    <select id="getThisWeekAndMonthNewMember" resultType="int" parameterType="string">
+        select COUNT(id)
+        from t_member
+        where regTime &gt;= #{weekMonday}
+    </select>
+</mapper>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.dao.OrderDao">
+    <insert id="add" parameterType="order" useGeneratedKeys="true" keyProperty="id">
+        insert into t_order(member_id, orderDate, orderType, orderStatus, setmeal_id)
+        VALUES (#{memberId}, #{orderDate}, #{orderType}, #{orderStatus}, #{setmealId})
+    </insert>
+
+    <select id="findOrderByCondition" resultType="order" parameterType="order">
+        select * from t_order
+        <where>
+            <if test="memberId != null">member_id = #{memberId}</if>
+            <if test="setmealId != null">and setmeal_id = #{setmealId}</if>
+            <if test="orderDate != null">and orderDate = #{orderDate}</if>
+        </where>
+    </select>
+
+    <select id="findOrderInfoById" resultType="map" parameterType="int">
+        select o.orderDate as orderDate, o.orderType as orderType, m.name as member, s.name as setmeal
+        from t_order o
+                 join t_member m
+                 join t_setmeal s
+        where o.member_id = m.id
+          and o.setmeal_id = s.id
+          and o.id = #{id}
+    </select>
+
+    <select id="getTodayOrderNumber" resultType="int" parameterType="string">
+        select COUNT(id)
+        from t_order
+        where orderDate = #{reportDate}
+    </select>
+
+    <select id="getTodayVisitsNumber" resultType="int" parameterType="string">
+        select COUNT(id)
+        from t_order
+        where orderDate = #{reportDate}
+          and orderStatus = '已出游'
+    </select>
+
+    <select id="getThisWeekAndMonthOrderNumber" resultType="int" parameterType="map">
+        select COUNT(id)
+        from t_order
+        where orderDate between #{begin} and #{end}
+    </select>
+
+    <select id="getThisWeekAndMonthVisitsNumber" resultType="int" parameterType="map">
+        select COUNT(id)
+        from t_order
+        where orderStatus = '已出游'
+          and orderDate between #{begin} and #{end}
+    </select>
+
+    <select id="findHotSetmeal" resultType="map">
+        SELECT s.name as name, COUNT(s.id) as setmeal_count, COUNT(s.id) / (SELECT COUNT(id) FROM t_order) as proportion
+        FROM t_setmeal s,
+             t_order o
+        WHERE s.id = o.setmeal_id
+        GROUP BY s.name
+        ORDER BY setmeal_count DESC
+        LIMIT 0,4
+    </select>
+</mapper>

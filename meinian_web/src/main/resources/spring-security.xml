@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                  http://www.springframework.org/schema/beans/spring-beans.xsd
+                  http://www.springframework.org/schema/mvc
+                  http://www.springframework.org/schema/mvc/spring-mvc.xsd
+                  http://code.alibabatech.com/schema/dubbo
+                  http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+                  http://www.springframework.org/schema/context
+                  http://www.springframework.org/schema/context/spring-context.xsd
+                          http://www.springframework.org/schema/security
+                          http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <!--授权静态资源自由访问-->
+    <security:http security="none" pattern="/js/**"/>
+    <security:http security="none" pattern="/css/**"/>
+    <security:http security="none" pattern="/img/**"/>
+    <security:http security="none" pattern="/plugins/**"/>
+    <security:http security="none" pattern="/login.html"/>
+    <!--开启注解方式权限控制，开启后就可以在controller中加注解进行权限控制-->
+    <security:global-method-security pre-post-annotations="enabled"/>
+
+    <!--授权，设置开启自动配置和可以使用表达式-->
+    <security:http auto-config="true" use-expressions="true">
+        <!--设置pages目录下的页面必须登录后访问-->
+        <security:intercept-url pattern="/pages/**" access="isAuthenticated()"/>
+        <security:intercept-url pattern="/travelItem/**" access="isAuthenticated()"/>
+        <!--
+          form-login：定义表单登录信息
+        -->
+        <security:form-login login-page="/login.html"
+                             username-parameter="username"
+                             password-parameter="password"
+                             login-processing-url="/login.do"
+                             default-target-url="/pages/main.html"
+                             authentication-failure-url="/login.html"
+                             always-use-default-target="true"/>
+        <!--暂时禁用CSRF(防止跨站请求伪造)，否则表单必须携带_csrf令牌值-->
+        <security:csrf disabled="true"/>
+        <!--invalidate-session 表示删除本次session-->
+        <security:logout logout-url="/logout.do" logout-success-url="/login.html" invalidate-session="true"/>
+        <security:headers>
+            <!--设置在页面可以通过iframe访问受保护的页面，默认为不允许访问-->
+            <security:frame-options policy="SAMEORIGIN"/>
+        </security:headers>
+        <security:access-denied-handler ref="deniedHandler"/>
+        <!-- 登出授权
+            logout：退出登录
+            logout-url：退出登录操作对应的请求路径
+            logout-success-url：退出登录后的跳转页面
+            invalidate-session="true" 销毁session
+        -->
+        <security:logout logout-url="/logout.do" logout-success-url="/login.html" invalidate-session="true"/>
+
+    </security:http>
+
+    <security:authentication-manager>
+        <security:authentication-provider user-service-ref="springSecurityUserService">
+            <security:password-encoder ref="passwordEncoder"/>
+        </security:authentication-provider>
+    </security:authentication-manager>
+
+    <!--配置认证提供者，登录过程中的处理逻辑-->
+    <bean class="com.atguigu.security.SpringSecurityUserService" id="springSecurityUserService"/>
+    <!--配置使用的加密策略-->
+    <bean class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" id="passwordEncoder"/>
+    <!--配置访问拒绝的处理类-->
+    <bean class="com.atguigu.security.CustomAccessDeniedHandler" id="deniedHandler"/>
+</beans>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.dao.TravelItemDao">
+    <insert id="add" parameterType="travelItem">/*在dao模块下的applicationContext配置文件下设置了别名包*/
+    insert into t_travelitem(code, name, sex, age, price, type, remark, attention)
+    values (#{code}, #{name}, #{sex}, #{age}, #{price}, #{type}, #{remark}, #{attention})
+    </insert>
+
+    <select id="findPage" parameterType="string" resultType="travelItem">
+        select * from t_travelitem
+        <where>
+            <if test="value!=null and value.length>0">/*必须使用简单参数value或者使用@Param指定一个名字*/
+                code =#{value} or name like "%"#{value}"%"
+            </if>
+        </where>
+    </select>
+
+    <delete id="delete" parameterType="int">
+        delete
+        from t_travelitem
+        where id = #{id}
+    </delete>
+
+    <select id="getById" resultType="travelItem" parameterType="int">
+        select *
+        from t_travelitem
+        where id = #{id}
+    </select>
+
+    <update id="edit" parameterType="travelItem">
+        update t_travelitem
+        <set>
+            <if test="code!=null and code.length>0">
+                code=#{code},
+            </if>
+            <if test="name!=null and name.length>0">
+                name=#{name},
+            </if>
+            <if test="sex!=null and sex.length>0">
+                sex=#{sex},
+            </if>
+            <if test="age!=null and age.length>0">
+                age=#{age},
+            </if>
+            <if test="price!=null">
+                price=#{price},
+            </if>
+            <if test="type!=null and type.length>0">
+                type=#{type},
+            </if>
+            <if test="remark!=null and remark.length>0">
+                remark=#{remark},
+            </if>
+            <if test="attention!=null and attention.length>0">
+                attention=#{attention},
+            </if>
+        </set>
+        /*动态sql最后会检查把多余的逗号去掉*/
+        where id = #{id}
+    </update>
+
+    <select id="findAll" resultType="travelItem">
+        select *
+        from t_travelitem
+    </select>
+
+    <select id="findCountByItemId" parameterType="int" resultType="long">
+        select count(*)
+        from t_travelgroup_travelitem
+        where travelitem_id = #{id}
+    </select>
+
+    <select id="findItemIdsByGroupId" resultType="travelItem" parameterType="int">
+        select i.*
+        from t_travelitem i
+                 join t_travelgroup_travelitem gi on i.id = gi.travelitem_id
+        where gi.travelgroup_id = #{id}
+    </select>
+</mapper>
